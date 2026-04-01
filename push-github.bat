@@ -142,6 +142,11 @@ exit /b 0
 echo.
 echo [ERROR] git push не удался.
 echo.
+echo Если ошибка "Repository not found" ^(репозиторий не найден^):
+echo   - Чаще всего репозитория ещё НЕТ на GitHub. Создайте его: github.com → New repository,
+echo     имя как в URL ^(например SuggySweep^), без README если уже есть локальные коммиты.
+echo   - Либо вы пушите не в тот аккаунт: войдите на GitHub под владельцем этого URL и повторите.
+echo.
 echo Если ошибка 403 / Permission denied:
 echo   - У вас в GitHub сейчас залогинен пользователь, у которого НЕТ прав на этот репозиторий.
 echo   - Пример: "denied to ayvabrat" — пуш идёт в чужой/организационный репозиторий от другого аккаунта.
