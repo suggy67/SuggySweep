@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 chcp 65001 >nul
 
 echo ==========================================
@@ -44,13 +44,6 @@ if not defined HAS_ORIGIN (
   git remote set-url origin "%REMOTE_URL%"
 )
 
-echo [INFO] Проверка чувствительных файлов...
-if exist "ai.txt" (
-  echo [WARN] Файл ai.txt найден.
-  echo [WARN] По умолчанию он не будет закоммичен, чтобы не утек токен.
-  git restore --staged "ai.txt" 2>nul
-)
-
 echo [INFO] Добавляю изменения...
 git add .
 if errorlevel 1 (
@@ -60,16 +53,46 @@ if errorlevel 1 (
 )
 
 if exist "ai.txt" (
-  git reset "ai.txt" >nul 2>&1
+  if /i "%SUGGY_COMMIT_AI%"=="1" (
+    echo [WARN] SUGGY_COMMIT_AI=1 — ai.txt будет включён в коммит ^(токен попадёт в историю Git^).
+  ) else (
+    echo [WARN] Файл ai.txt найден — по умолчанию НЕ коммитим ^(защита токена^).
+    echo [HINT] Чтобы закоммитить ai.txt:  set SUGGY_COMMIT_AI=1  и запустите скрипт снова.
+    git reset "ai.txt" >nul 2>&1
+    git restore --staged "ai.txt" 2>nul
+  )
 )
 
 git diff --cached --quiet
-if %errorlevel%==0 (
-  echo [INFO] Нет изменений для коммита.
+if errorlevel 1 goto DO_COMMIT
+
+echo.
+echo [INFO] Нечего коммитить в индексе ^(возможно, изменён только ai.txt — см. выше^).
+git status -sb
+echo.
+
+git rev-parse --verify HEAD >nul 2>&1
+if errorlevel 1 (
+  echo [WARN] В репозитории ещё нет ни одного коммита.
+  echo [HINT] Сделайте правки в файлах проекта ^(не только ai.txt^) или установите SUGGY_COMMIT_AI=1.
   popd
-  exit /b 0
+  exit /b 2
 )
 
+echo [INFO] Пробую отправить уже существующие коммиты ^(git push^)...
+git branch -M %BRANCH%
+git push -u origin %BRANCH%
+if errorlevel 1 (
+  echo [ERROR] git push завершился с ошибкой.
+  echo [HINT] Проверьте авторизацию GitHub ^(PAT / Git Credential Manager^).
+  popd
+  exit /b 1
+)
+echo [OK] Push выполнен.
+popd
+exit /b 0
+
+:DO_COMMIT
 set "MSG=chore: update Suggy Sweep project"
 if not "%~1"=="" set "MSG=%~1"
 
@@ -86,7 +109,7 @@ git branch -M %BRANCH%
 git push -u origin %BRANCH%
 if errorlevel 1 (
   echo [ERROR] git push завершился с ошибкой.
-  echo [HINT] Проверьте авторизацию GitHub (PAT / Git Credential Manager).
+  echo [HINT] Проверьте авторизацию GitHub ^(PAT / Git Credential Manager^).
   popd
   exit /b 1
 )
@@ -94,4 +117,3 @@ if errorlevel 1 (
 echo [OK] Публикация завершена.
 popd
 exit /b 0
-
