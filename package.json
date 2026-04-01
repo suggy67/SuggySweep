@@ -1,0 +1,18 @@
+{
+  "name": "suggy-sweep",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Suggy Sweep — подготовка ПК к переустановке Windows",
+  "scripts": {
+    "dev:backend": "python backend/main.py",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"python backend/main.py\" \"npm run dev --prefix frontend\"",
+    "dev:electron": "concurrently -k -n backend,frontend,gui -c blue,green,magenta \"python backend/main.py\" \"npm run dev --prefix frontend\" \"npm run start:dev --prefix electron\"",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:electron:main": "npm run build:main --prefix electron",
+    "build:desktop": "npm run build:frontend && npm run build:electron:main && npm run pack --prefix electron"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

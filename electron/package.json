@@ -1,0 +1,53 @@
+{
+  "name": "suggy-sweep-electron",
+  "private": true,
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "build:main": "npx tsc -p tsconfig.json",
+    "start": "npm run build:main && electron .",
+    "start:dev": "npm run build:main && npx wait-on http-get://127.0.0.1:8765/api/system/info http-get://127.0.0.1:5173 && electron .",
+    "pack": "electron-builder --win"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0",
+    "typescript": "^5.4.0",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "dev.suggysweep.desktop",
+    "productName": "Suggy Sweep",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!**/.pytest_cache/**"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "app"
+      }
+    ],
+    "win": {
+      "target": ["portable", "nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
