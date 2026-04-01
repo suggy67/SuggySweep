@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
 
 echo ==========================================
@@ -8,14 +8,25 @@ echo ==========================================
 
 set "ROOT=%~dp0"
 set "BRANCH=main"
+set "DEFAULT_REMOTE=https://github.com/suggy67/SuggySweep.git"
+set "REMOTE_URL=!DEFAULT_REMOTE!"
 
 if defined SUGGY_REMOTE_URL (
-  set "REMOTE_URL=%SUGGY_REMOTE_URL%"
-  echo [INFO] Remote из SUGGY_REMOTE_URL: %REMOTE_URL%
+  set "RU=!SUGGY_REMOTE_URL!"
+  if not "!RU!"=="" (
+    set "REMOTE_URL=!RU!"
+    echo [INFO] Remote из SUGGY_REMOTE_URL: !REMOTE_URL!
+  ) else (
+    echo [WARN] SUGGY_REMOTE_URL задан, но пустой — использую по умолчанию: !DEFAULT_REMOTE!
+  )
 ) else (
-  set "REMOTE_URL=https://github.com/suggy67/SuggySweep.git"
-  echo [INFO] Remote по умолчанию: %REMOTE_URL%
+  echo [INFO] Remote по умолчанию: !REMOTE_URL!
   echo [HINT] Свой форк/другой URL:  set SUGGY_REMOTE_URL=https://github.com/ВАШ_ЛОГИН/SuggySweep.git
+)
+
+if "!REMOTE_URL!"=="" (
+  echo [ERROR] REMOTE_URL пустой. Удалите пустую переменную SUGGY_REMOTE_URL из среды Windows или задайте корректный URL.
+  exit /b 1
 )
 
 pushd "%ROOT%" || (
@@ -45,11 +56,13 @@ for /f "usebackq delims=" %%r in (`git remote`) do (
 
 if not defined HAS_ORIGIN (
   echo [INFO] Добавляю remote origin...
-  git remote add origin "%REMOTE_URL%"
+  git remote add origin "!REMOTE_URL!"
 ) else (
   echo [INFO] Обновляю origin...
-  git remote set-url origin "%REMOTE_URL%"
+  git remote set-url origin "!REMOTE_URL!"
 )
+echo [INFO] Текущий origin:
+git remote -v
 
 echo [INFO] Добавляю изменения...
 git add .
@@ -91,6 +104,7 @@ git branch -M %BRANCH%
 git push -u origin %BRANCH%
 if errorlevel 1 goto PUSH_FAIL
 echo [OK] Push выполнен.
+call :OpenGitHub
 popd
 exit /b 0
 
@@ -112,7 +126,16 @@ git push -u origin %BRANCH%
 if errorlevel 1 goto PUSH_FAIL
 
 echo [OK] Публикация завершена.
+call :OpenGitHub
 popd
+exit /b 0
+
+:OpenGitHub
+if /i "!SUGGY_OPEN_BROWSER!"=="0" exit /b 0
+set "GH_PAGE=!REMOTE_URL!"
+set "GH_PAGE=!GH_PAGE:.git=!"
+echo [INFO] Открываю страницу репозитория в браузере...
+start "" "!GH_PAGE!"
 exit /b 0
 
 :PUSH_FAIL

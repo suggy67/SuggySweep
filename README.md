@@ -59,7 +59,8 @@ npm run dev:electron
 | `SUGGY_PYTHON` | Electron | Команда/путь к Python для запуска `backend/main.py` |
 | `SUGGY_DEV_SERVER_URL` | Electron (dev) | URL Vite, по умолчанию `http://127.0.0.1:5173` |
 | `SUGGY_BACKEND_URL` | Electron | URL проверки готовности API, по умолчанию `http://127.0.0.1:8765/api/system/info` |
-| `SUGGY_REMOTE_URL` | `push-github.bat` | URL `origin` (например форк: `https://github.com/ВАШ_ЛОГИН/SuggySweep.git`). По умолчанию — `suggy67/SuggySweep` |
+| `SUGGY_REMOTE_URL` | `push-github.bat` | URL `origin` (например форк: `https://github.com/ВАШ_ЛОГИН/SuggySweep.git`). Пустое значение игнорируется — берётся `suggy67/SuggySweep` |
+| `SUGGY_OPEN_BROWSER` | `push-github.bat` | После успешного `git push` открыть страницу репозитория в браузере. `0` — не открывать; по умолчанию открывается |
 
 Для AI также поддерживается автоматический токен из `ai.txt`:
 - сначала читается локальный `<repo_root>/ai.txt`;
