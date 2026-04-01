@@ -59,6 +59,7 @@ npm run dev:electron
 | `SUGGY_PYTHON` | Electron | Команда/путь к Python для запуска `backend/main.py` |
 | `SUGGY_DEV_SERVER_URL` | Electron (dev) | URL Vite, по умолчанию `http://127.0.0.1:5173` |
 | `SUGGY_BACKEND_URL` | Electron | URL проверки готовности API, по умолчанию `http://127.0.0.1:8765/api/system/info` |
+| `SUGGY_REMOTE_URL` | `push-github.bat` | URL `origin` (например форк: `https://github.com/ВАШ_ЛОГИН/SuggySweep.git`). По умолчанию — `suggy67/SuggySweep` |
 
 Для AI также поддерживается автоматический токен из `ai.txt`:
 - сначала читается локальный `<repo_root>/ai.txt`;
@@ -95,6 +96,26 @@ push-github.bat "feat: update desktop build and backup flows"
 > Если изменились **только** `ai.txt`, Git будет пустым — это нормально. Либо коммитьте другие файлы, либо осознанно:  
 > `set SUGGY_COMMIT_AI=1` и снова `push-github.bat "сообщение"` (токен попадёт в историю Git).  
 > Если коммитов нечего, но они уже есть локально, скрипт попробует **только `git push`**.
+
+### GitHub: `403 Permission denied` при `git push`
+
+Сообщение вида `Permission to suggy67/SuggySweep.git denied to ayvabrat` значит: **Git использует аккаунт `ayvabrat`**, а пуш идёт в репозиторий, куда у этого пользователя **нет прав записи**.
+
+Варианты:
+
+1. Выполнить push под **владельцем** репозитория `suggy67` (войти в Git Credential Manager / выдать PAT с правами на репозиторий).
+2. Создать **fork** на GitHub и пушить в свой fork:
+   ```bat
+   set SUGGY_REMOTE_URL=https://github.com/ВАШ_ЛОГИН/SuggySweep.git
+   push-github.bat "feat: sync"
+   ```
+3. Попросить **добавить ваш аккаунт collaborator** в `suggy67/SuggySweep`.
+
+Сброс сохранённого логина GitHub в Windows (после этого `git push` снова спросит учётные данные):
+
+```bat
+cmdkey /delete:git:https://github.com
+```
 
 ## API (кратко)
 

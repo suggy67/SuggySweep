@@ -4,12 +4,19 @@ chcp 65001 >nul
 
 echo ==========================================
 echo Suggy Sweep - Публикация в GitHub
-echo Репозиторий: https://github.com/suggy67/SuggySweep
 echo ==========================================
 
 set "ROOT=%~dp0"
-set "REMOTE_URL=https://github.com/suggy67/SuggySweep.git"
 set "BRANCH=main"
+
+if defined SUGGY_REMOTE_URL (
+  set "REMOTE_URL=%SUGGY_REMOTE_URL%"
+  echo [INFO] Remote из SUGGY_REMOTE_URL: %REMOTE_URL%
+) else (
+  set "REMOTE_URL=https://github.com/suggy67/SuggySweep.git"
+  echo [INFO] Remote по умолчанию: %REMOTE_URL%
+  echo [HINT] Свой форк/другой URL:  set SUGGY_REMOTE_URL=https://github.com/ВАШ_ЛОГИН/SuggySweep.git
+)
 
 pushd "%ROOT%" || (
   echo [ERROR] Не удалось перейти в корень проекта.
@@ -82,12 +89,7 @@ if errorlevel 1 (
 echo [INFO] Пробую отправить уже существующие коммиты ^(git push^)...
 git branch -M %BRANCH%
 git push -u origin %BRANCH%
-if errorlevel 1 (
-  echo [ERROR] git push завершился с ошибкой.
-  echo [HINT] Проверьте авторизацию GitHub ^(PAT / Git Credential Manager^).
-  popd
-  exit /b 1
-)
+if errorlevel 1 goto PUSH_FAIL
 echo [OK] Push выполнен.
 popd
 exit /b 0
@@ -107,13 +109,31 @@ if errorlevel 1 (
 echo [INFO] Отправка в origin/%BRANCH%...
 git branch -M %BRANCH%
 git push -u origin %BRANCH%
-if errorlevel 1 (
-  echo [ERROR] git push завершился с ошибкой.
-  echo [HINT] Проверьте авторизацию GitHub ^(PAT / Git Credential Manager^).
-  popd
-  exit /b 1
-)
+if errorlevel 1 goto PUSH_FAIL
 
 echo [OK] Публикация завершена.
 popd
 exit /b 0
+
+:PUSH_FAIL
+echo.
+echo [ERROR] git push не удался.
+echo.
+echo Если ошибка 403 / Permission denied:
+echo   - У вас в GitHub сейчас залогинен пользователь, у которого НЕТ прав на этот репозиторий.
+echo   - Пример: "denied to ayvabrat" — пуш идёт в чужой/организационный репозиторий от другого аккаунта.
+echo.
+echo Решения:
+echo   1^) Войти в GitHub под владельцем репозитория ^(suggy67^) и повторить push.
+echo   2^) Сделать fork на GitHub и выставить:
+echo        set SUGGY_REMOTE_URL=https://github.com/ВАШ_ЛОГИН/SuggySweep.git
+echo      затем снова push-github.bat
+echo   3^) Добавить ваш аккаунт как Collaborator в репозитории suggy67/SuggySweep.
+echo.
+echo Сброс сохранённых учётных данных GitHub ^(Windows^):
+echo   cmdkey /list:git:https://github.com
+echo   cmdkey /delete:git:https://github.com
+echo   затем снова git push — введите PAT или войдите через браузер.
+echo.
+popd
+exit /b 1
